@@ -1,4 +1,5 @@
 import { test, expect } from '../core/fixtures.js';
+import { redact } from '../core/redact.js';
 import { account, negative, values } from '../core/data.js';
 import { LoginPage } from '../ui/login-page.js';
 
@@ -9,9 +10,14 @@ test.beforeEach(() => {
 test('ТК-А-06.1 · Вход по почте и паролю', async ({ page, journal }) => {
   const login = new LoginPage(page);
   await journal.parameters({ 'Идентификатор': 'Email', 'Пароль': 'Действующий', 'Ожидается': 'Личный кабинет владельца почты' });
+  const maskedLogin = redact(account.login);
+  const maskedPassword = redact(account.password);
+  expect(maskedLogin === '***' && maskedPassword === '***', 'Логин и пароль должны быть полностью скрыты').toBe(true);
+  journal.log('INFO', `Логин=${maskedLogin} Пароль=${maskedPassword}`);
   await journal.step('Открыть форму входа по паролю', () => login.visit());
   await journal.step('Ввести учетные данные, проверить маскирование и войти', () => login.enter(account.login, account.password));
   await journal.step('Открыть личный кабинет и сверить почту владельца', () => login.profile(account.login));
+  await journal.screenshot('Личный кабинет после входа', login.cabinet, login.privateFields);
 });
 
 test('ТК-А-06.2 · Вход по привязанному телефону и паролю', async ({ page, browser, journal }) => {
@@ -30,6 +36,7 @@ test('ТК-А-06.2 · Вход по привязанному телефону и
     await login.visit(); await login.enter(phone, account.password);
   });
   await journal.step('Сверить владельца нового сеанса по почте', () => login.profile(account.login));
+  await journal.screenshot('Личный кабинет после входа', login.cabinet, login.privateFields);
 });
 for (const row of negative) {
   test(row.id + ' · ' + row.title, async ({ page, journal }) => {

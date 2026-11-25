@@ -3,7 +3,15 @@ import pino from 'pino';
 import * as allure from 'allure-js-commons';
 import { redact } from './redact.js';
 
-async function attachScreenshot(page, info, name, region) {
+async function attachScreenshot(page, info, name, region, privateFields) {
+  if (privateFields) {
+    await expect(region).toBeVisible();
+    const body = await region.screenshot({
+      mask: [privateFields], maskColor: '#d6d9dc', animations: 'disabled'
+    });
+    await info.attach(name, { body, contentType: 'image/png' });
+    return;
+  }
   const mask = [page.locator('input, textarea, .personal-link, .auth_wr_inner, .bx-soa-customer, #bx-soa-properties, [class*=user-name], [class*=profile-name]')];
   const options = { mask, animations: 'disabled', timeout: 6000 };
   const candidates = [region, 
@@ -51,7 +59,7 @@ export const test = base.extend({
           throw error;
         }
       }),
-      screenshot: name => attachScreenshot(page, info, name)
+      screenshot: (name, region, privateFields) => attachScreenshot(page, info, name, region, privateFields)
     };
     log('DEBUG', 'Открыт изолированный контекст браузера');
     await use(journal);

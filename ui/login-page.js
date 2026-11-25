@@ -5,6 +5,8 @@ import { BaseElement } from './base-element.js';
 export class LoginPage extends BasePage {
   constructor(page) {
     super(page);
+    this.cabinet = page.locator('.main:has(.personal__wrapper)');
+    this.privateFields = page.locator('.personal__main-private__value, .personal__main-private__email, .personal__main-private__phone, .header-cabinet__link');
     this.trigger = page.locator('a.header-cabinet__link.animate-load:visible').first();
     this.user = new BaseElement(page.locator('input[name=PHONE_LOGIN_EMAIL]:visible'), 'Логин');
     this.pass = new BaseElement(page.locator('input[name=PASSWORD]:visible'), 'Пароль');
